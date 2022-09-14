@@ -42,3 +42,4 @@ build/
 .idea/dictionaries
 .idea/vcs.xml
 .idea/jsLibraryMappings.xml
+*.csv
