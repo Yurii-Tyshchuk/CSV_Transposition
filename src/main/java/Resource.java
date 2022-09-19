@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -14,6 +15,7 @@ public class Resource {
     private LocalDateTime firstDate;
     private LocalDateTime lastDate;
     private LocalDateTime currentLastDate;
+
     public Resource(String pathToInputFile, String pathToOutputFile, String pathToFileWithUniqueID) {
         this.pathToInputFile = pathToInputFile;
         this.pathToOutputFile = pathToOutputFile;
@@ -35,6 +37,8 @@ public class Resource {
                 listOfUniqueIDs.add(line);
             }
             fileWithUniqueID.close();
+
+            createHeader();
 
             BufferedReader inputFile = new BufferedReader(new FileReader(pathToInputFile));
 
@@ -70,7 +74,7 @@ public class Resource {
     }
 
     public void writeToCSV(String line) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(pathToOutputFile, true))) {
+        try (OutputStreamWriter bw = new OutputStreamWriter(new FileOutputStream(pathToOutputFile, true), StandardCharsets.UTF_8)) {
             bw.write(line);
         } catch (IOException e) {
             e.printStackTrace();
@@ -92,5 +96,20 @@ public class Resource {
 
     public List<String> getListOfUniqueIDs() {
         return listOfUniqueIDs;
+    }
+
+    private void createHeader() {
+        StringBuilder result = new StringBuilder("Timestamp;");
+        for (String id : listOfUniqueIDs) {
+            result.append(id);
+            result.append(";");
+        }
+        result.setLength(result.length() - 1);
+        result.append("\n");
+        try (OutputStreamWriter bw = new OutputStreamWriter(new FileOutputStream(pathToOutputFile, true), StandardCharsets.UTF_8)) {
+            bw.write(result.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

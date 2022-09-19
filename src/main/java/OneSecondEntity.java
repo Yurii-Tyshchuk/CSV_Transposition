@@ -40,6 +40,7 @@ public class OneSecondEntity {
                 result.append(";");
             }
         }
+        result.setLength(result.length() - 1);
         result.append("\n");
         return result.toString();
     }
