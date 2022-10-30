@@ -38,7 +38,7 @@ public class Main {
 
                 LocalDateTime center = roundTime.plus(Duration.ofMillis(500));
 
-                String tagName = columns[3];
+                String tagName = columns[2];
                 if (listOfUniqueIDs.contains(tagName)) {
                     if (!mapOfDateTime.containsKey(roundTime)) {
                         mapOfDateTime.put(roundTime, new OneSecondEntity(roundTime));
