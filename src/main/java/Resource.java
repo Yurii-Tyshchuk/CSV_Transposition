@@ -4,17 +4,17 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Resource {
     private final String pathToInputFile;
     private final String pathToOutputFile;
     private final String pathToFileWithUniqueID;
     private final List<String> listOfUniqueIDs = new ArrayList<>();
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss.SSS");
-    private LocalDateTime firstDate;
-    private LocalDateTime lastDate;
-    private LocalDateTime currentLastDate;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss.SSS");
+    private List<LocalDateTime> localDateTimeListBetweenFirstAndLastDate;
 
     public Resource(String pathToInputFile, String pathToOutputFile, String pathToFileWithUniqueID) {
         this.pathToInputFile = pathToInputFile;
@@ -45,22 +45,40 @@ public class Resource {
             inputFile.readLine();
             String firstDateTime = inputFile.readLine().split(";")[0];
             String lastDateTime = "";
-            while ((line = inputFile.readLine()) != null) {
+
+            while ((line = inputFile.readLine()) != null)
                 lastDateTime = line;
-            }
             lastDateTime = lastDateTime.split(";")[0];
             inputFile.close();
 
-            firstDate = getDateTime(firstDateTime).truncatedTo(ChronoUnit.SECONDS);
-            lastDate = getDateTime(lastDateTime).truncatedTo(ChronoUnit.SECONDS);
-            currentLastDate = getDateTime(lastDateTime);
+            LocalDateTime firstDate = getDateTime(firstDateTime).truncatedTo(ChronoUnit.SECONDS);
+            LocalDateTime lastDate = getDateTime(lastDateTime).truncatedTo(ChronoUnit.SECONDS);
+
+            localDateTimeListBetweenFirstAndLastDate = generateLocalDateTimeListBetweenDates(firstDate, lastDate);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public LocalDateTime getDateTime(String firstDateTime) {
-        return LocalDateTime.parse(firstDateTime.substring(0, firstDateTime.length() - 10), formatter);
+    public HashMap<LocalDateTime, OneRow> getListOfRows() {
+        HashMap<LocalDateTime, OneRow> result = new HashMap<>();
+        for (LocalDateTime localDateTime : localDateTimeListBetweenFirstAndLastDate) {
+            result.put(localDateTime, new OneRow(localDateTime));
+        }
+        return result;
+    }
+
+    private List<LocalDateTime> generateLocalDateTimeListBetweenDates(LocalDateTime firstDate, LocalDateTime lastDate) {
+        long numOfSecondBetween = ChronoUnit.SECONDS.between(firstDate, lastDate);
+
+        return IntStream.iterate(0, i -> i + 1)
+                .limit(numOfSecondBetween + 1)
+                .mapToObj(firstDate::plusSeconds)
+                .toList();
+    }
+
+    public LocalDateTime getDateTime(String dateTime) {
+        return LocalDateTime.parse(dateTime.substring(0, dateTime.length() - 10), formatter);
     }
 
     public BufferedReader readCSV() {
@@ -73,29 +91,8 @@ public class Resource {
         }
     }
 
-    public void writeToCSV(String line) {
-        try (OutputStreamWriter bw = new OutputStreamWriter(new FileOutputStream(pathToOutputFile, true), StandardCharsets.UTF_8)) {
-            bw.write(line);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        firstDate = firstDate.plusSeconds(1);
-    }
-
-    public LocalDateTime getFirstDate() {
-        return firstDate;
-    }
-
-    public LocalDateTime getLastDate() {
-        return lastDate;
-    }
-
-    public LocalDateTime getCurrentLastDate() {
-        return currentLastDate;
-    }
-
-    public List<String> getListOfUniqueIDs() {
-        return listOfUniqueIDs;
+    public OutputStreamWriter getOutputStreamWriter() throws FileNotFoundException {
+        return new OutputStreamWriter(new FileOutputStream(pathToOutputFile, true), StandardCharsets.UTF_8);
     }
 
     private void createHeader() {
@@ -111,5 +108,9 @@ public class Resource {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<String> getListOfUniqueIDs() {
+        return listOfUniqueIDs;
     }
 }

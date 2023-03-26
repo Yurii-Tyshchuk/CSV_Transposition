@@ -4,21 +4,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class OneSecondEntity {
+public class OneRow {
     private final LocalDateTime currentTime;
     private final Map<String, List<Double>> columns = new HashMap<>();
     private static List<String> listOfUniqueIDs;
 
-    public OneSecondEntity(LocalDateTime currentTime) {
+    public OneRow(LocalDateTime currentTime) {
         this.currentTime = currentTime;
     }
 
     public void addValueBySensorId(String id, double value) {
-        List<Double> values;
         if (!columns.containsKey(id)) {
             columns.put(id, new ArrayList<>());
         }
-        values = columns.get(id);
+        List<Double> values = columns.get(id);
         assert values != null;
         values.add(value);
     }
@@ -46,6 +45,6 @@ public class OneSecondEntity {
     }
 
     public static void setListOfUniqueIDs(List<String> listOfUniqueIDs) {
-        OneSecondEntity.listOfUniqueIDs = listOfUniqueIDs;
+        OneRow.listOfUniqueIDs = listOfUniqueIDs;
     }
 }
