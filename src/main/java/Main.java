@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Main {
     public static void main(String[] args) {
@@ -19,7 +20,8 @@ public class Main {
         OneRow.setListOfUniqueIDs(listOfUniqueIDs);
 
         Map<LocalDateTime, OneRow> listOfRows = resource.getListOfRows();
-        HashSet<LocalDateTime> buffer = new HashSet<>();
+        LocalDateTime startDateTime = Resource.getFirstDate();
+        LocalDateTime endDateTime = Resource.getFirstDate();
 
         try (BufferedReader bufferedReader = resource.readCSV();
              BufferedReader bufferedReader2 = resource.readCSV();
@@ -52,24 +54,26 @@ public class Main {
                 }
                 pb.step();
 
-                if (buffer.size() == 500) {
-                    List<LocalDateTime> sortedDate = new ArrayList<>(buffer);
-                    Collections.sort(sortedDate);
-                    for (LocalDateTime time : sortedDate.stream().limit(450).toList()) {
-                        line = listOfRows.get(time).getLine();
+                if (endDateTime.plusSeconds(30).isBefore(roundTime)) {
+                    long numOfSecondBetween = ChronoUnit.SECONDS.between(startDateTime, endDateTime);
+
+                    List<LocalDateTime> localDateTimes = IntStream.iterate(0, i -> i + 1)
+                            .limit(numOfSecondBetween)
+                            .mapToObj(startDateTime::plusSeconds)
+                            .toList();
+                    for (LocalDateTime dateTime : localDateTimes) {
+                        line = listOfRows.get(dateTime).getLine();
                         outputStreamWriter.write(line);
-                        listOfRows.remove(time);
-                        buffer.remove(time);
+                        listOfRows.remove(dateTime);
                     }
-
+                    startDateTime = endDateTime;
+                    endDateTime = endDateTime.plusSeconds(30);
                 }
-
-                buffer.add(roundTime);
             }
 
-            List<LocalDateTime> sortedDate = new ArrayList<>(buffer);
-            Collections.sort(sortedDate);
-            for (LocalDateTime time : sortedDate) {
+            List<LocalDateTime> sortedKeys = new ArrayList<>(listOfRows.keySet());
+            Collections.sort(sortedKeys);
+            for (LocalDateTime time : sortedKeys) {
                 line = listOfRows.get(time).getLine();
                 outputStreamWriter.write(line);
             }

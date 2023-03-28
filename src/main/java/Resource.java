@@ -12,6 +12,7 @@ public class Resource {
     private final String pathToInputFile;
     private final String pathToOutputFile;
     private final String pathToFileWithUniqueID;
+    private static LocalDateTime firstDate;
     private final List<String> listOfUniqueIDs = new ArrayList<>();
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss.SSS");
     private List<LocalDateTime> localDateTimeListBetweenFirstAndLastDate;
@@ -52,6 +53,7 @@ public class Resource {
             inputFile.close();
 
             LocalDateTime firstDate = getDateTime(firstDateTime).truncatedTo(ChronoUnit.SECONDS);
+            Resource.firstDate = getDateTime(firstDateTime).truncatedTo(ChronoUnit.SECONDS);
             LocalDateTime lastDate = getDateTime(lastDateTime).truncatedTo(ChronoUnit.SECONDS);
 
             localDateTimeListBetweenFirstAndLastDate = generateLocalDateTimeListBetweenDates(firstDate, lastDate);
@@ -112,5 +114,9 @@ public class Resource {
 
     public List<String> getListOfUniqueIDs() {
         return listOfUniqueIDs;
+    }
+
+    public static LocalDateTime getFirstDate() {
+        return firstDate;
     }
 }
